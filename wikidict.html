@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.9/wing.min.css" integrity="sha512-XQRjL/KHfJKzlVnXFkycCZmTZRdSO1kgAAJeXlD2x0ukN/3ZSdFbv7IORlDvcCK0DozMdc1tvfjb4H0UTQjc4w==" crossorigin="anonymous" />
+</head>
+<body>
+<div class="page-header">
+    <h1>Dictionary Translation</h1>
+</div>
+ 
+<form class="form-inline">
+    <input type="text" id="word" class="search-query" placeholder="english word.. "required>
+    <button class="btn btn-primary">Translate</button>
+</form>
+
+<div id="result" class="hide">
+    <h2>Meaning / Translation</h2>
+    <ul></ul>
+</div>
+
+<script>
+var params = new window.URLSearchParams(window.location.search);
+
+function show_result(data) {
+    $("#result ul").text('');
+    $.each(data.query.pages, function(page_id, page) {
+        if (page.iwlinks === undefined) {
+            $("#result ul").append('no results');
+            return false; // break
+        }
+        $.each(page.iwlinks, function(i, el) {
+            var trans = el['*'];
+            trans = trans.replace('Special:Search/', '').replace('_', ' ');
+            $("#result ul").append('<li>' + trans + '</li>');
+        });
+    });
+    $("#result").fadeIn('fast');
+}
+
+function translate() {
+    $("#result").fadeOut('fast');
+    $.ajax({
+        url: 'http://en.wiktionary.org/w/api.php',
+        data: {
+            action: 'query',
+            prop: 'iwlinks',
+            format: 'json',
+            iwlimit: 500,
+            iwprefix: params.get('t'),
+            titles: $('#word').val()
+        },
+        dataType: 'jsonp',
+        success: show_result
+    });
+    return false;
+}
+
+$('form').submit(translate);
+$('#word').focus();
+</script>
+
+
+</body>
+</html>
